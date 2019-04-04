@@ -1,0 +1,13 @@
+boost:
+  - 1.68.0
+numpy:
+  - 1.15
+python:
+  - 2.7
+  - 3.5
+  - 3.6
+  - 3.7
+xtensor:
+  - 0.19
+xtensor_python:
+  - 0.22

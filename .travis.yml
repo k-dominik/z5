@@ -2,12 +2,7 @@
 os: linux
 dist: trusty
 sudo: required
-language: python
-env:
-  - CONDA_PYTHON_VERSION="27"
-  - CONDA_PYTHON_VERSION="35"
-  - CONDA_PYTHON_VERSION="36"
-  - CONDA_PYTHON_VERSION="37"
+language: generic
 addons:
   apt:
     update: true
@@ -20,40 +15,10 @@ before_script:
   # update conda
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
+  - conda install -c conda-forge conda-build conda-verify
   - conda info -a
-  # create the test environment
-  - conda env create -f ./environments/unix/$CONDA_PYTHON_VERSION.yml -n build-env
-  - source activate build-env
   # install additional dependencies for tests
-  - conda install -c conda-forge zarr h5py
+  # - conda install -c conda-forge zarr h5py
 
 script:
-
-  - source ./environments/unix/env.sh
-  ###############################################
-  # configure cmake
-  ###############################################
-  - cmake
-          -DWITHIN_TRAVIS=ON
-          -DWITH_BLOSC=ON
-          -DWITH_ZLIB=ON
-          -DWITH_BZIP2=ON
-          -DWITH_XZ=ON
-          -DCMAKE_PREFIX_PATH="$ENV_ROOT"
-          -DPYTHON_EXECUTABLE="$PY_BIN"
-          -DCMAKE_CXX_FLAGS="-std=c++17"
-          # -DWITH_LZ4=ON
-
-
-  ###############################################
-  # the actual build
-  ###############################################
-  - make -j 4
-
-  ###############################################
-  # test the project
-  ###############################################
-  # python tests
-  - export PYTHONPATH="$TRAVIS_BUILD_DIR/python:$PYTHONPATH"
-  # run all python unittests
-  - python -m unittest discover -v python/test
+  - conda build -c conda-forge conda-recipe

@@ -1,18 +1,3 @@
-# Platform-specific dylib extension
-if [ $(uname) == "Darwin" ]; then
-    export CC=clang
-    export CXX=clang++
-    export DYLIB="dylib"
-else
-    export CC=gcc
-    export CXX=g++
-    export DYLIB="so"
-fi
-
-##
-## START THE BUILD
-##
-
 mkdir -p build
 cd build
 
@@ -23,10 +8,14 @@ if [ $(uname) == Darwin ]; then
     CXXFLAGS="$CXXFLAGS -stdlib=libc++"
 fi
 
-# Set the correct python flags, depending on the distribution
-PY_VER=$(python -c "import sys; print('{}.{}'.format(*sys.version_info[:2]))")
-PY_ABIFLAGS=$(python -c "import sys; print('' if sys.version_info.major == 2 else sys.abiflags)")
-PY_ABI=${PY_VER}${PY_ABIFLAGS}
+if [[ ${PY3K} == 1 ]];
+then
+    PYTHON_LIBRARIES="${PREFIX}/lib/libpython${PY_VER}m${SHLIB_EXT}"
+    PYTHON_INCLUDE_DIR=${PREFIX}/lib/python${PY_VER}m
+else
+    PYTHON_LIBRARIES="${PREFIX}/lib/libpython${PY_VER}${SHLIB_EXT}"
+    PYTHON_INCLUDE_DIR=${PREFIX}/lib/python${PY_VER}
+fi
 
 ##
 ## Configure
@@ -50,16 +39,16 @@ cmake .. \
         -DWITH_XZ=ON \
 \
         -DPYTHON_EXECUTABLE=${PYTHON} \
-        -DPYTHON_LIBRARY=${PREFIX}/lib/libpython${PY_ABI}.${DYLIB} \
-        -DPYTHON_INCLUDE_DIR=${PREFIX}/include/python${PY_ABI} \
+        -DPYTHON_LIBRARY=${PYTHON_LIBRARIES} \
+        -DPYTHON_INCLUDE_DIR=${PYTHON_INCLUDE_DIR} \
 ##
 
 ##
 ## Compile
 ##
 make -j${CPU_COUNT}
-#make test
 
 ##
 ## Install to prefix
-cp -r ${SRC_DIR}/build/python/z5py ${PREFIX}/lib/python${PY_VER}/site-packages/
+make install
+#cp -r ${SRC_DIR}/build/python/z5py ${PREFIX}/lib/python${PY_VER}/site-packages/

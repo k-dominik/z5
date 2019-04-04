@@ -15,33 +15,44 @@ source:
 
 build:
   number: 0
-  string: py{{py}}_{{PKG_BUILDNUM}}_g{{GIT_FULL_HASH[:7]}}
+  string: py{{python}}_{{PKG_BUILDNUM}}_g{{GIT_FULL_HASH[:7]}}
 
 
 requirements:
   build:
-    - python {{PY_VER}}*
     - cmake
-    - boost-cpp 1.68.0  # the boost version needs to be fixed, because we are linking against specific shared objects
-    - xtensor 0.18.1
-    - xtensor-python 0.21.0
-    - numpy >=1.15
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
+    - python {{python}}*
+    - boost-cpp {{ boost }}
+    - xtensor {{ xtensor }}
+    - xtensor-python {{ xtensor_python }}
+    - numpy {{ numpy }}
     - nlohmann_json
     - blosc
     - bzip2
     - xz
     - zlib
   run:
-    - python {{PY_VER}}*
-    - boost-cpp 1.68.0
-    - numpy >=1.15
+    - {{ pin_compatible('python', max_pin='x.x') }}
+    - {{ pin_compatible('boost-cpp', max_pin='x.x.x') }}
+    - {{ pin_compatible('numpy', min_pin='x.x') }}
     - six
     - blosc
     - bzip2
     - xz
     - zlib
+    - futures  # [py2k]
 
 
 test:
   imports:
     - z5py
+  requires:
+    - pytest
+    - h5py
+  source_files:
+    - src/python/test/*
+  commands:
+    - pytest src/python/test
